@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="chat-body">
+    <div class="sidebar">
+        <a href="{{ url_for('new_chat') }}" class="btn-new-chat">+ New Chat</a>
+        <div class="chat-list">
+            {% for convo in all_conversations %}
+            <a href="{{ url_for('chat', conversation_id=convo.id) }}" class="chat-list-item {% if convo.id == current_convo_id %}active{% endif %}">
+                {{ convo.title }}
+            </a>
+            {% endfor %}
+        </div>
+        <div class="sidebar-footer">
+            <span>Welcome, {{ current_user.username }}</span>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+
+    <div class="main-chat">
+        <div class="history-container" id="history-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="user-message"><p>{{ message.query }}</p></div>
+                    <div class="ai-message"><p>{{ message.answer | safe }}</p></div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-history">
+                    <h1 class="main-title">AI Agent for Prescription Guidance</h1>
+                    <p>Ask a question to start your new conversation.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <form method="post" class="query-form" id="agent-form">
+            <div class="loader-container" id="loader"><div class="capsule-loader"><span class="loader-half gradient-half"></span><span class="loader-half white"></span></div></div>
+            <input type="text" name="query" placeholder="Ask about symptoms or medicine..." required autocomplete="off">
+            <button type="submit">Ask Agent</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('agent-form').addEventListener('submit', function() {
+            document.getElementById('loader').classList.add('active');
+        });
+        window.onload = function() {
+            const historyContainer = document.getElementById('history-container');
+            historyContainer.scrollTop = historyContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
+

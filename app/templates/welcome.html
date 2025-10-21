@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+    <div class="welcome-card">
+        <h1>Welcome Back</h1>
+
+        <!-- THIS IS THE NEWLY ADDED SECTION -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <p>Log in or sign up to get smarter responses, save your conversations, and more.</p>
+        
+        <div class="button-group">
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Log In</a>
+            <a href="{{ url_for('register') }}" class="btn btn-secondary">Sign Up for Free</a>
+        </div>
+
+        <a href="{{ url_for('guest_chat') }}" class="link-tertiary">Continue as Guest</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+Flask
+langchain
+langchain-community
+pandas
+chromadb
+sentence-transformers
+torch
+transformers
+accelerate
+bs4
+langchainhub
+llama-index
+streamlit
+langchain-experimental  
+Flask-SQLAlchemy
+Flask-Login
+Flask-Bcrypt

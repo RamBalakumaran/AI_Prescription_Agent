@@ -1,0 +1,6 @@
+Medicine_A,Medicine_B,Severity,Warning_Message
+Ibuprofen,Warfarin,Severe,Taking Ibuprofen with Warfarin can significantly increase the risk of serious bleeding. Consult a doctor immediately.
+Aspirin,Warfarin,Severe,Taking Aspirin with Warfarin dramatically increases the risk of bleeding. This combination should be avoided.
+Sildenafil,Nitroglycerin,Severe,Combining Sildenafil (Viagra) with any nitrate-based drug can cause a fatal drop in blood pressure.
+Amlodipine,Atorvastatin,Moderate,"Taking these together can increase the concentration of Atorvastatin, raising the risk of muscle problems. Monitor for muscle pain."
+Metformin,Ciprofloxacin,Moderate,"Ciprofloxacin can affect blood sugar levels, making Metformin less predictable. Blood sugar should be monitored closely."

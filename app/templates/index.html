@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prescription Guidance Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Agent for Prescription Guidance</h1>
+            <p>Your personal AI Pharmacist Assistant.</p>
+            <!-- Login/Logout Links -->
+            <div class="auth-links">
+                {% if current_user.is_authenticated %}
+                    <span>Welcome, {{ current_user.username }}!</span>
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                    <a href="{{ url_for('register') }}">Register</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <main>
+            <div class="history-container" id="history-container">
+                {% if history %}
+                    {% for message in history %}
+                        <div class="user-message"><p>{{ message.query }}</p></div>
+                        <div class="ai-message"><p>{{ message.answer | safe }}</p></div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-history">
+                        <p>Your conversation will appear here. Ask a question to get started!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- The main form at the bottom -->
+            <form action="/" method="post" class="query-form" id="agent-form">
+                <!-- NEW: Loader is now inside the form -->
+                <div class="loader-container" id="loader">
+                    <div class="capsule-loader">
+                        <span class="loader-half gradient-half"></span>
+                        <span class="loader-half white"></span>
+                    </div>
+                </div>
+                <input type="text" name="query" placeholder="Ask about symptoms or medicine..." required autocomplete="off">
+                <button type="submit">Ask Agent</button>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        const form = document.getElementById('agent-form');
+        const loader = document.getElementById('loader');
+        const historyContainer = document.getElementById('history-container');
+
+        form.addEventListener('submit', function() {
+            // Show the loader when the form is submitted
+            loader.classList.add('active');
+        });
+
+        // Auto-scroll to the bottom of the chat history
+        window.onload = function() {
+            historyContainer.scrollTop = historyContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
