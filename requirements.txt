@@ -11,8 +11,10 @@ bs4
 langchainhub
 llama-index
 streamlit
-langchain-experimental  
+langchain-experimental
 Flask-SQLAlchemy
 Flask-Login
 Flask-Bcrypt
 gunicorn
+psycopg2-binary
+python-dotenv

@@ -11,7 +11,6 @@ db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
 
-# (Database Models remain the same)
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -39,7 +38,11 @@ def load_user(user_id):
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.urandom(24)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+    
+    # --- THIS IS THE KEY CHANGE ---
+    # It will use the DATABASE_URL from the environment, which Render will provide.
+    # If it's not found, it will default to a local sqlite file (good for backup).
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///instance/database.db')
     
     db.init_app(app)
     bcrypt.init_app(app)
@@ -49,21 +52,17 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-    # --- MAIN ROUTES ---
+    # (The rest of the file remains exactly the same as the last correct version)
     @app.route('/')
     def index():
         if current_user.is_authenticated:
-            # --- THIS IS THE CORRECTED LINE ---
-            # Instead of scalar_one_or_none(), we get all scalars and take the .first().
             latest_convo = db.session.execute(db.select(Conversation).filter_by(user_id=current_user.id).order_by(desc(Conversation.timestamp))).scalars().first()
-            
             if latest_convo:
                 return redirect(url_for('chat', conversation_id=latest_convo.id))
             else:
                 return redirect(url_for('new_chat'))
         return redirect(url_for('welcome'))
 
-    # (The rest of the file remains exactly the same)
     @app.route('/chat/<int:conversation_id>', methods=['GET', 'POST'])
     @login_required
     def chat(conversation_id):
