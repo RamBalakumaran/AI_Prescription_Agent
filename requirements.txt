@@ -15,3 +15,4 @@ langchain-experimental
 Flask-SQLAlchemy
 Flask-Login
 Flask-Bcrypt
+gunicorn
