@@ -38,10 +38,6 @@ def load_user(user_id):
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.urandom(24)
-    
-    # --- THIS IS THE KEY CHANGE ---
-    # It will use the DATABASE_URL from the environment, which Render will provide.
-    # If it's not found, it will default to a local sqlite file (good for backup).
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///instance/database.db')
     
     db.init_app(app)
@@ -52,7 +48,7 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-    # (The rest of the file remains exactly the same as the last correct version)
+    # --- MAIN ROUTES ---
     @app.route('/')
     def index():
         if current_user.is_authenticated:
@@ -62,6 +58,12 @@ def create_app():
             else:
                 return redirect(url_for('new_chat'))
         return redirect(url_for('welcome'))
+
+    # --- THIS IS THE NEWLY ADDED HEALTH CHECK ROUTE ---
+    @app.route('/healthz')
+    def health_check():
+        """A simple endpoint for Render's health checker to know the app is alive."""
+        return "OK", 200
 
     @app.route('/chat/<int:conversation_id>', methods=['GET', 'POST'])
     @login_required
