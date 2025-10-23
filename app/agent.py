@@ -1,7 +1,6 @@
 import pandas as pd
 import re
 from langchain_community.document_loaders import DataFrameLoader
-# MODIFIED: Updated the import path for CharacterTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -218,6 +217,7 @@ def get_ai_response(query: str):
         return intelligent_symptom_analyser(query)
 
     print("--> Routing to: Medicine Information Finder")
-    return get_ai_response(query)
+    # --- THIS IS THE CORRECTED LINE ---
+    return get_medicine_info(query)
 
 print("Agent module loaded. Models and data will be loaded on first request.")
