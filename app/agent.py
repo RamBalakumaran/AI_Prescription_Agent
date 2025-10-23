@@ -2,25 +2,36 @@
 
 import pandas as pd
 import re
+from collections import defaultdict
+
+# LangChain components that are memory-efficient
 from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-# LLM and Pipeline imports are intentionally REMOVED to save memory.
-from collections import defaultdict
+
+# --- CRITICAL OPTIMIZATION ---
+# The following imports have been REMOVED to prevent memory crashes on the free tier:
+# - from langchain.chains import RetrievalQA
+# - from langchain_community.llms import HuggingFacePipeline
+# - from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+# -----------------------------
+
 
 # --- LAZY LOADING IMPLEMENTATION ---
+# These global variables will act as a cache. They start as None.
 _INTERACTIONS_DF = None
 _MEDICINES_DF_STATIC = None
-# MODIFIED: This cache will now store Retrievers, which use less memory.
+# This cache now stores a 'retriever' object, which is much more lightweight than a full RAG chain.
 _RETRIEVER_CACHE = {} 
 
 def _load_static_data():
-    """This function loads the heavy dataframes, but only when called."""
+    """This function loads the data CSV files, but only when called."""
     global _INTERACTIONS_DF, _MEDICINES_DF_STATIC
     if _MEDICINES_DF_STATIC is None:
         print("--- LAZY LOADING: Loading static CSV data for the first time... ---")
         try:
+            # The file paths must be correct relative to the project root
             _INTERACTIONS_DF = pd.read_csv("data/interactions.csv", encoding='latin1')
             _MEDICINES_DF_STATIC = pd.read_csv("data/medicines.csv", encoding='latin1')
             print("--- Static data loaded successfully. ---")
@@ -29,25 +40,28 @@ def _load_static_data():
             _INTERACTIONS_DF = pd.DataFrame()
             _MEDICINES_DF_STATIC = pd.DataFrame()
 
-# --- 2. DEFINE THE TOOL FUNCTIONS ---
+
+# --- 2. DEFINE THE TOOL FUNCTIONS (Standalone and Reliable) ---
 
 def get_medicine_info(query: str):
     """
-    MODIFIED: This function now gets a 'retriever' instead of a full 'rag_chain'.
-    It directly finds the most relevant piece of information.
+    MODIFIED: This function now uses the lightweight retriever to find information
+    and formats it directly, without using a generative AI.
     """
     retriever = create_retriever(search_k=1)
     if retriever is None: return "Error: Could not create the information retrieval system."
     
-    # Use the retriever to get the most relevant document directly.
+    # Use the retriever to get the most relevant document(s) directly.
     documents = retriever.get_relevant_documents(query)
 
     if not documents: return "I could not find information for that medicine."
+    
     # Format the information from the first document found.
     return format_single_medicine_response(documents[0].page_content, query)
 
+
 def intelligent_symptom_analyser(query: str):
-    # This function is unchanged as it does not use the heavy AI models.
+    """This function is unchanged as it does not use heavy AI models."""
     print("--- Running Intelligent Symptom Analyser (Context-Aware) ---")
     _load_static_data()
     medicines_df = _MEDICINES_DF_STATIC.copy()
@@ -90,8 +104,9 @@ def intelligent_symptom_analyser(query: str):
     response_parts.extend(["<br><strong>⚠️ When to see a doctor:</strong>", "• If symptoms persist for more than 3-4 days.","• If you develop a high fever or have difficulty breathing.","• If the pain is severe and does not improve."])
     return "<br>".join(response_parts)
 
+
 def check_drug_interactions(query: str):
-    # This function is unchanged.
+    """This function is unchanged."""
     _load_static_data()
     mentioned_drugs = [name for name in _MEDICINES_DF_STATIC['Medicine_Name'].unique() if re.search(r'\b' + re.escape(name) + r'\b', query, re.IGNORECASE)]
     if len(mentioned_drugs) < 2: return "Please mention at least two drug names to check for interactions."
@@ -103,11 +118,13 @@ def check_drug_interactions(query: str):
     else:
         return f"No specific interaction found between <strong>{drug1}</strong> and <strong>{drug2}</strong>.<br><br><strong>Disclaimer:</strong> Always consult a pharmacist."
 
+
 # --- 3. HELPER FUNCTIONS ---
+
 def create_retriever(search_k=1):
     """
-    MODIFIED: This function is renamed from 'create_rag_chain' to 'create_retriever'
-    and it no longer loads the heavy 'distilgpt2' LLM.
+    MODIFIED: This function now only creates and caches a retriever, which uses
+    the embeddings model to find relevant text but does NOT load the heavy LLM.
     """
     global _RETRIEVER_CACHE
     if search_k in _RETRIEVER_CACHE:
@@ -119,6 +136,7 @@ def create_retriever(search_k=1):
         medicines_df = _MEDICINES_DF_STATIC.copy()
         medicines_df.fillna('N/A', inplace=True)
     except Exception as e:
+        print(f"Error loading data in create_retriever: {e}")
         return None
 
     def build_description(row):
@@ -131,20 +149,20 @@ def create_retriever(search_k=1):
     docs = loader.load()
     text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=0)
     split_docs = text_splitter.split_documents(docs)
+    
+    # This embeddings model is lightweight and will fit in memory.
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma.from_documents(documents=split_docs, embedding=embeddings)
     
-    # REMOVED: The llm = HuggingFacePipeline(...) line is gone.
-    # REMOVED: The RetrievalQA chain is gone.
-
-    # We now create and cache the retriever directly.
+    # We create and cache the retriever directly. No LLM is involved.
     retriever = vectorstore.as_retriever(search_kwargs={"k": search_k})
     _RETRIEVER_CACHE[search_k] = retriever
     print(f"--- Retriever for k={search_k} cached. ---")
     return retriever
 
+
 def parse_context(context: str):
-    # This function is unchanged.
+    """This helper function is unchanged."""
     data = {}
     parts = [p.strip() for p in context.split('|||') if p.strip()]
     for part in parts:
@@ -154,8 +172,9 @@ def parse_context(context: str):
         except ValueError: continue
     return data
 
+
 def format_single_medicine_response(context: str, original_query: str):
-    # This function is unchanged.
+    """This helper function is unchanged."""
     data = parse_context(context)
     if 'Medicine_Name' not in data: return "Found incomplete information."
     db_medicine_name, strength = data.get('Medicine_Name'), data.get('Strength')
@@ -166,21 +185,31 @@ def format_single_medicine_response(context: str, original_query: str):
     response_parts = [title,f"•  <strong>Use Case:</strong> {data.get('Use Case', 'N/A')}",f"•  <strong>Availability:</strong> {'In Stock' if data.get('Stock', 'No').lower() == 'yes' else 'Out of Stock'}",f"•  <strong>Alternative:</strong> {data.get('Alternative', 'N/A')}",f"•  <strong>Dosage:</strong> {data.get('Dosage', 'N/A')}", "<br><strong>Disclaimer:</strong> Always consult a doctor or pharmacist."]
     return "<br>".join(response_parts)
 
+
 # --- 4. THE ROUTER ---
+
 def get_ai_response(query: str):
-    # This routing logic is unchanged.
+    """This routing logic is unchanged and correctly directs requests."""
     _load_static_data() 
     print(f"Routing query: '{query}'")
     query_lower = query.lower()
     interaction_keywords = ['and', 'with', 'together', 'mix', 'vs', 'versus']
     symptom_keywords = ['symptom', 'feel', 'have', 'suffer', 'pain', 'ache', 'cough', 'headache', 'fever', 'nausea', 'allergy', 'nose', 'nouse', 'knee', 'joint']
+    
+    # Ensure data is loaded before trying to access it
+    if _MEDICINES_DF_STATIC is None:
+        return "Error: Medicine data is not available. Please check server logs."
+        
     mentioned_drugs = set(name for name in _MEDICINES_DF_STATIC['Medicine_Name'].unique() if re.search(r'\b' + re.escape(name) + r'\b', query, re.IGNORECASE))
+    
     if len(mentioned_drugs) > 1 or (len(mentioned_drugs) == 1 and any(key in query_lower.split() for key in interaction_keywords)):
         print("--> Routing to: Drug Interaction Checker")
         return check_drug_interactions(query)
+        
     if any(key in query_lower for key in symptom_keywords) and len(mentioned_drugs) == 0:
         print("--> Routing to: Intelligent Symptom Analyser")
         return intelligent_symptom_analyser(query)
+        
     print("--> Routing to: Medicine Information Finder")
     return get_medicine_info(query)
 
