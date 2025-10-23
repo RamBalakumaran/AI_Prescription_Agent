@@ -1,7 +1,8 @@
 import pandas as pd
 import re
 from langchain_community.document_loaders import DataFrameLoader
-from langchain.text_splitter import CharacterTextSplitter
+# MODIFIED: Updated the import path for CharacterTextSplitter
+from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
@@ -43,7 +44,7 @@ def get_medicine_info(query: str):
 def intelligent_symptom_analyser(query: str):
     print("--- Running Intelligent Symptom Analyser (Context-Aware) ---")
     _load_static_data()
-    
+
     medicines_df = _MEDICINES_DF_STATIC.copy()
     medicines_df.fillna('N/A', inplace=True)
 
@@ -52,22 +53,22 @@ def intelligent_symptom_analyser(query: str):
         use_cases = set(term.strip() for term in re.split(r',|\s|/', row['Use_Case'].lower()) if term.strip())
         for use_case in use_cases:
             use_case_map[use_case].append(row['Medicine_Name'])
-    
+
     query_lower = query.lower().replace('nouse', 'nose').replace('pain', ' pain ')
-    
+
     symptom_categories = {
         'systemic': ['fever', 'headache', 'fatigue', 'chills'],
         'respiratory': ['cough', 'nose', 'congestion', 'throat'],
         'musculoskeletal': ['knee', 'joint', 'sprain', 'muscle', 'body', 'inflammation'],
         'digestive': ['acidity', 'nausea', 'vomiting', 'diarrhea']
     }
-    
+
     detected_symptoms = defaultdict(list)
     match = re.search(r'\b(knee|joint|muscle|stomach|head)\s*pain\b', query_lower)
     if match:
         pain_type = match.group(1)
         detected_symptoms['musculoskeletal' if pain_type != 'head' else 'systemic'].append(f"{pain_type} pain")
-    
+
     for category, keywords in symptom_categories.items():
         for keyword in keywords:
             if keyword in query_lower and keyword not in str(detected_symptoms):
@@ -83,7 +84,7 @@ def intelligent_symptom_analyser(query: str):
         possible_conditions.append("Musculoskeletal Strain or Localized Inflammation")
     if 'digestive' in detected_symptoms:
         possible_conditions.append("Digestive Discomfort")
-    
+
     if not possible_conditions: possible_conditions.append("General Symptoms")
 
     suggested_medicines = {}
@@ -102,7 +103,7 @@ def intelligent_symptom_analyser(query: str):
         f"<br><strong>🧠 Possible Causes:</strong> {', '.join(possible_conditions)}.",
         "<br><strong>💊 Common Relief Options (from our database):</strong>"
     ]
-    
+
     if not suggested_medicines:
         response_parts.append("• No specific medicine suggestions found for these exact symptoms.")
     else:
@@ -114,7 +115,7 @@ def intelligent_symptom_analyser(query: str):
         "• If you develop a high fever or have difficulty breathing.",
         "• If the pain is severe and does not improve."
     ])
-    
+
     return "<br>".join(response_parts)
 
 def check_drug_interactions(query: str):
@@ -140,7 +141,7 @@ def create_rag_chain(search_k=1):
 
     print(f"--- LAZY LOADING: Building RAG chain for k={search_k} for the first time... ---")
     _load_static_data()
-    
+
     try:
         medicines_df = _MEDICINES_DF_STATIC.copy()
         medicines_df.fillna('N/A', inplace=True)
@@ -160,7 +161,7 @@ def create_rag_chain(search_k=1):
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma.from_documents(documents=split_docs, embedding=embeddings)
     llm = HuggingFacePipeline(pipeline=pipeline("text-generation", model="distilgpt2", tokenizer="distilgpt2", max_new_tokens=100))
-    
+
     rag_chain = RetrievalQA.from_chain_type(
         llm=llm, chain_type="stuff",
         retriever=vectorstore.as_retriever(search_kwargs={"k": search_k}),
@@ -205,18 +206,18 @@ def get_ai_response(query: str):
     query_lower = query.lower()
     interaction_keywords = ['and', 'with', 'together', 'mix', 'vs', 'versus']
     symptom_keywords = ['symptom', 'feel', 'have', 'suffer', 'pain', 'ache', 'cough', 'headache', 'fever', 'nausea', 'allergy', 'nose', 'nouse', 'knee', 'joint']
-    
+
     mentioned_drugs = set(name for name in _MEDICINES_DF_STATIC['Medicine_Name'].unique() if re.search(r'\b' + re.escape(name) + r'\b', query, re.IGNORECASE))
-    
+
     if len(mentioned_drugs) > 1 or (len(mentioned_drugs) == 1 and any(key in query_lower.split() for key in interaction_keywords)):
         print("--> Routing to: Drug Interaction Checker")
         return check_drug_interactions(query)
-    
+
     if any(key in query_lower for key in symptom_keywords) and len(mentioned_drugs) == 0:
         print("--> Routing to: Intelligent Symptom Analyser")
         return intelligent_symptom_analyser(query)
-        
+
     print("--> Routing to: Medicine Information Finder")
-    return get_medicine_info(query)
+    return get_ai_response(query)
 
 print("Agent module loaded. Models and data will be loaded on first request.")

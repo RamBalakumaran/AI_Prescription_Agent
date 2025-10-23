@@ -1,20 +1,30 @@
+# Flask and Web Server
 Flask
-langchain
-langchain-community
-pandas
-chromadb
-sentence-transformers
-torch
-transformers
-accelerate
-bs4
-langchainhub
-llama-index
-streamlit
-langchain-experimental
+gunicorn
+
+# Database and Environment
 Flask-SQLAlchemy
 Flask-Login
 Flask-Bcrypt
-gunicorn
 psycopg2-binary
 python-dotenv
+
+# Core LangChain and AI Packages
+langchain
+langchain-community
+langchain-text-splitters # ADDED: Required for CharacterTextSplitter
+langchainhub
+langchain-experimental
+llama-index
+
+# Hugging Face Transformers and PyTorch
+torch
+transformers
+accelerate
+sentence-transformers
+
+# Data Handling and Utilities
+pandas
+chromadb
+bs4
+streamlit
