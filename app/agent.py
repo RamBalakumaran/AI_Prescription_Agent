@@ -77,7 +77,7 @@ def intelligent_symptom_analyser(query: str):
                 dosage = medicines_df[medicines_df['Medicine_Name'] == med_name]['Dosage_Instruction'].iloc[0]
                 suggested_medicines[med_name] = f"• For <strong>{keyword.capitalize()}</strong>, you could consider <strong>{med_name}</strong> ({dosage})."
     user_symptoms_str = ', '.join(all_detected_keywords)
-    response_parts = [f"Based on your symptoms (<strong>{user_symptoms_str}</strong>), here is a possible analysis:",f"<br><strong>🧠 Possible Causes:</strong> {', '.join(possible_conditions)}.", "<br><strong>💊 Common Relief Options (from our database):</strong>"]
+    response_parts = [f"Based on your symptoms (<strong>{user_symptoms_str}</strong>), here is a possible analysis:",f"<br><strong>🧠 Possible Causes:</strong> {', '.join(possible_conditions)}.", "<br><strong>💊 Common Relief Options ):</strong>"]
     if not suggested_medicines: response_parts.append("• No specific medicine suggestions found for these exact symptoms.")
     else: response_parts.extend(suggested_medicines.values())
     response_parts.extend(["<br><strong>⚠️ When to see a doctor:</strong>", "• If symptoms persist for more than 3-4 days.","• If you develop a high fever or have difficulty breathing.","• If the pain is severe and does not improve."])

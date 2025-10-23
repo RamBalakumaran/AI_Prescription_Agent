@@ -5,12 +5,14 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from flask_bcrypt import Bcrypt
+from dotenv import load_dotenv
 
 # --- DATABASE AND APP SETUP ---
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
 
+# --- MODELS ---
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -35,34 +37,51 @@ class ChatMessage(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+# --- APP FACTORY FUNCTION ---
 def create_app():
-    app = Flask(__name__)
+    # ✅ 1. Make Flask aware of instance/ folder
+    app = Flask(__name__, instance_relative_config=True)
+
+    # ✅ 2. Load environment variables from .env
+    load_dotenv()
+
+    # ✅ 3. App configuration
     app.config['SECRET_KEY'] = os.urandom(24)
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///instance/database.db')
-    
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///instance/database.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # ✅ 4. Ensure instance folder exists (SQLite needs it)
+    try:
+        os.makedirs(app.instance_path, exist_ok=True)
+    except OSError:
+        pass
+
+    # ✅ 5. Initialize extensions
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'welcome'
 
+    # ✅ 6. Create tables automatically
     with app.app_context():
         db.create_all()
 
-    # --- MAIN ROUTES ---
+    # --- ROUTES ---
     @app.route('/')
     def index():
         if current_user.is_authenticated:
-            latest_convo = db.session.execute(db.select(Conversation).filter_by(user_id=current_user.id).order_by(desc(Conversation.timestamp))).scalars().first()
+            latest_convo = db.session.execute(
+                db.select(Conversation).filter_by(user_id=current_user.id).order_by(desc(Conversation.timestamp))
+            ).scalars().first()
             if latest_convo:
                 return redirect(url_for('chat', conversation_id=latest_convo.id))
             else:
                 return redirect(url_for('new_chat'))
         return redirect(url_for('welcome'))
 
-    # --- THIS IS THE NEWLY ADDED HEALTH CHECK ROUTE ---
     @app.route('/healthz')
     def health_check():
-        """A simple endpoint for Render's health checker to know the app is alive."""
         return "OK", 200
 
     @app.route('/chat/<int:conversation_id>', methods=['GET', 'POST'])
@@ -81,8 +100,11 @@ def create_app():
                 db.session.add(new_message)
                 db.session.commit()
                 return redirect(url_for('chat', conversation_id=conversation.id))
-        all_conversations = db.session.execute(db.select(Conversation).filter_by(user_id=current_user.id).order_by(desc(Conversation.timestamp))).scalars().all()
-        return render_template('chat.html', messages=conversation.messages, all_conversations=all_conversations, current_convo_id=conversation.id)
+        all_conversations = db.session.execute(
+            db.select(Conversation).filter_by(user_id=current_user.id).order_by(desc(Conversation.timestamp))
+        ).scalars().all()
+        return render_template('chat.html', messages=conversation.messages,
+                               all_conversations=all_conversations, current_convo_id=conversation.id)
 
     @app.route('/new_chat')
     @login_required
@@ -107,12 +129,14 @@ def create_app():
 
     @app.route('/welcome')
     def welcome():
-        if current_user.is_authenticated: return redirect(url_for('index'))
+        if current_user.is_authenticated:
+            return redirect(url_for('index'))
         return render_template('welcome.html')
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
-        if current_user.is_authenticated: return redirect(url_for('index'))
+        if current_user.is_authenticated:
+            return redirect(url_for('index'))
         if request.method == 'POST':
             username, password = request.form['username'], request.form['password']
             remember = True if request.form.get('remember') else False
@@ -128,7 +152,8 @@ def create_app():
     
     @app.route('/register', methods=['GET', 'POST'])
     def register():
-        if current_user.is_authenticated: return redirect(url_for('index'))
+        if current_user.is_authenticated:
+            return redirect(url_for('index'))
         if request.method == 'POST':
             username, password = request.form['username'], request.form['password']
             user_exists = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
