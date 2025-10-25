@@ -9,22 +9,17 @@ Flask-Bcrypt
 psycopg2-binary
 python-dotenv
 
-# Core LangChain and AI Packages
+# Core LangChain for RAG
 langchain
 langchain-community
-langchain-text-splitters # ADDED: Required for CharacterTextSplitter
-langchainhub
-langchain-experimental
-llama-index
+langchain-text-splitters
+chromadb
 
-# Hugging Face Transformers and PyTorch
+# Hugging Face Transformers and PyTorch Backend
 torch
 transformers
 accelerate
 sentence-transformers
 
-# Data Handling and Utilities
+# Data Handling
 pandas
-chromadb
-bs4
-streamlit
