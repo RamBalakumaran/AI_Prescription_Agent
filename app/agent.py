@@ -6,8 +6,8 @@ from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-# THIS IS THE CORRECTED LINE:
-from langchain_community.chains import RetrievalQA
+# THIS IS THE CORRECTED LINE (REVERTED TO THE ORIGINAL VERSION)
+from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from collections import defaultdict
@@ -23,9 +23,8 @@ def _load_static_data():
     if _MEDICINES_DF_STATIC is None:
         print("--- LAZY LOADING: Loading static CSV data for the first time... ---")
         try:
-            # IMPORTANT: Render uses a temporary filesystem. The path must be relative.
-            _INTERACTIONS_DF = pd.read_csv("app/data/interactions.csv", encoding='latin1')
-            _MEDICINES_DF_STATIC = pd.read_csv("app/data/medicines.csv", encoding='latin1')
+            _INTERACTIONS_DF = pd.read_csv("data/interactions.csv", encoding='latin1')
+            _MEDICINES_DF_STATIC = pd.read_csv("data/medicines.csv", encoding='latin1')
             print("--- Static data loaded successfully. ---")
         except FileNotFoundError as e:
             print(f"FATAL ERROR: Could not load a required CSV file. {e}")
