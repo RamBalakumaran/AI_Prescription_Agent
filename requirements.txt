@@ -1,25 +1,21 @@
 # Flask and Web Server
 Flask
 gunicorn
-
 # Database and Environment
 Flask-SQLAlchemy
 Flask-Login
 Flask-Bcrypt
 psycopg2-binary
 python-dotenv
-
 # Core LangChain for RAG
 langchain
 langchain-community
 langchain-text-splitters
 chromadb
-
 # Hugging Face Transformers and PyTorch Backend
 torch
 transformers
 accelerate
 sentence-transformers
-
 # Data Handling
 pandas
