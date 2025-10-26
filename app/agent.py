@@ -6,6 +6,7 @@ from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
+# THIS IS THE CORRECTED LINE:
 from langchain_community.chains import RetrievalQA
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
@@ -14,7 +15,7 @@ from collections import defaultdict
 # --- LAZY LOADING IMPLEMENTATION ---
 _INTERACTIONS_DF = None
 _MEDICINES_DF_STATIC = None
-_RAG_CHAIN_CACHE = {} 
+_RAG_CHAIN_CACHE = {}
 
 def _load_static_data():
     """This function loads the heavy dataframes, but only when called."""
@@ -22,8 +23,9 @@ def _load_static_data():
     if _MEDICINES_DF_STATIC is None:
         print("--- LAZY LOADING: Loading static CSV data for the first time... ---")
         try:
-            _INTERACTIONS_DF = pd.read_csv("data/interactions.csv", encoding='latin1')
-            _MEDICINES_DF_STATIC = pd.read_csv("data/medicines.csv", encoding='latin1')
+            # IMPORTANT: Render uses a temporary filesystem. The path must be relative.
+            _INTERACTIONS_DF = pd.read_csv("app/data/interactions.csv", encoding='latin1')
+            _MEDICINES_DF_STATIC = pd.read_csv("app/data/medicines.csv", encoding='latin1')
             print("--- Static data loaded successfully. ---")
         except FileNotFoundError as e:
             print(f"FATAL ERROR: Could not load a required CSV file. {e}")
@@ -154,7 +156,7 @@ def format_single_medicine_response(context: str, original_query: str):
 # --- 4. THE ROUTER ---
 def get_ai_response(query: str):
     # This function is unchanged
-    _load_static_data() 
+    _load_static_data()
     print(f"Routing query: '{query}'")
     query_lower = query.lower()
     interaction_keywords = ['and', 'with', 'together', 'mix', 'vs', 'versus']
