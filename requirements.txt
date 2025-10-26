@@ -10,8 +10,11 @@ psycopg2-binary
 python-dotenv
 
 # Core LangChain for RAG
+# This is the complete and correct list
 langchain
 langchain-community
+langchain-core
+langchain-text-splitters
 
 # Hugging Face Transformers and PyTorch Backend
 torch
