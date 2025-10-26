@@ -6,7 +6,7 @@ from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-# THIS IS THE CORRECTED LINE (REVERTED TO THE ORIGINAL VERSION)
+# THIS IS THE FINAL, CORRECT LINE
 from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
