@@ -9,6 +9,7 @@ psycopg2-binary
 python-dotenv
 # Core LangChain for RAG
 langchain
+langchain-core
 langchain-community
 langchain-text-splitters
 chromadb
