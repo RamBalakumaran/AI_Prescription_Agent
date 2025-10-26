@@ -17,4 +17,5 @@ COPY . .
 # The command to run your app using Gunicorn.
 # This is the most critical line.
 # It uses the $PORT variable provided by Render.
-CMD ["gunicorn", "--workers", "1", "--bind", "0.0.0.0:$PORT", "--timeout", "120", "app:create_app()"]
+
+CMD gunicorn --workers 1 --bind 0.0.0.0:$PORT --timeout 120 "app:create_app()"
