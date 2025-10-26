@@ -10,7 +10,6 @@ psycopg2-binary
 python-dotenv
 
 # Core LangChain for RAG
-# This is the corrected section
 langchain
 langchain-community
 
