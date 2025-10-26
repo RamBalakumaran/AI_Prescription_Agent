@@ -5,6 +5,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy the requirements file into the container at /app
+# This is done first to leverage Docker's build cache
 COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
@@ -13,8 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of your application's code into the container at /app
 COPY . .
 
-# Expose the port the app runs on. Hugging Face Spaces uses 7860.
-EXPOSE 7860
-
-# Define the command to run your app using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers=1", "run:create_app()"]
+# The command to run your app using Gunicorn.
+# This is the most critical line.
+# It uses the $PORT variable provided by Render.
+CMD ["gunicorn", "--workers", "1", "--bind", "0.0.0.0:$PORT", "--timeout", "120", "app:create_app()"]
