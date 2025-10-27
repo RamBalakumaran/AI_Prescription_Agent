@@ -6,11 +6,10 @@ from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-# --- FINAL CORRECTED IMPORT ---
-# This is the line that needs to be changed from the previous error log.
-from langchain.chains.retrieval import create_retrieval_chain
-# --- END CORRECTION ---
+# --- FINAL CORRECTED IMPORTS (for a full langchain installation) ---
+from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
+# --- END CORRECTION ---
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
@@ -184,4 +183,4 @@ def get_ai_response(query: str):
     print("--> Routing to: Medicine Information Finder")
     return get_medicine_info(query)
 
-print("Agent module loaded. Models and data will be loaded on first request.")
+print("Agent module loaded. Models and data will be loaded on first request.")```
