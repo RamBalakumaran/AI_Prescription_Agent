@@ -6,11 +6,11 @@ from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-# --- CORRECTED IMPORTS: Replaced deprecated RetrievalQA ---
-from langchain.chains import create_retrieval_chain
+# --- CORRECTED IMPORTS: Adjusted path for create_retrieval_chain ---
+from langchain.chains.retrieval import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate
 # --- END CORRECTION ---
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from collections import defaultdict
@@ -39,10 +39,8 @@ def get_medicine_info(query: str):
     rag_chain = create_rag_chain(search_k=1)
     if rag_chain is None: return "Error: Could not create the information retrieval system."
     
-    # --- CORRECTED INVOCATION: The new chain expects 'input' and returns 'context' ---
     result = rag_chain.invoke({"input": query})
-    documents = result.get('context') # Source documents are now in the 'context' key
-    # --- END CORRECTION ---
+    documents = result.get('context')
 
     if not documents: return "I could not find information for that medicine."
     return format_single_medicine_response(documents[0].page_content, query)
@@ -128,22 +126,17 @@ def create_rag_chain(search_k=1):
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma.from_documents(documents=split_docs, embedding=embeddings)
     llm = HuggingFacePipeline(pipeline=pipeline("text-generation", model="distilgpt2", tokenizer="distilgpt2", max_new_tokens=100))
-
-    # --- CORRECTED RAG CHAIN IMPLEMENTATION ---
-    # 1. Create a prompt template to structure the input for the LLM.
+    
     prompt = ChatPromptTemplate.from_template(
         "Answer the following question based only on the provided context:\n\n"
         "<context>\n{context}\n</context>\n\n"
         "Question: {input}"
     )
 
-    # 2. Create a chain to combine the retrieved documents into a single string.
     question_answer_chain = create_stuff_documents_chain(llm, prompt)
 
-    # 3. Create the final retrieval chain that retrieves documents and passes them to the QA chain.
     retriever = vectorstore.as_retriever(search_kwargs={"k": search_k})
     rag_chain = create_retrieval_chain(retriever, question_answer_chain)
-    # --- END CORRECTION ---
 
     _RAG_CHAIN_CACHE[search_k] = rag_chain
     print(f"--- RAG chain for k={search_k} cached. ---")
