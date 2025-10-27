@@ -12,10 +12,10 @@ python-dotenv==1.0.1
 # Core LangChain for RAG
 # Pinned to a stable version family to ensure consistent import paths
 langchain==0.1.17
-# --- CORRECTED VERSION ---
 langchain-community==0.0.36
+# --- CORRECTED VERSION ---
+langchain-core==0.1.48
 # --- END CORRECTION ---
-langchain-core==0.1.45
 langchain-text-splitters==0.0.1
 
 # Hugging Face Transformers and PyTorch Backend
