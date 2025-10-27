@@ -6,10 +6,11 @@ from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-# --- CORRECTED IMPORTS: Adjusted path for create_retrieval_chain ---
+# --- FINAL CORRECTED IMPORT ---
+# This is the line that needs to be changed from the previous error log.
 from langchain.chains.retrieval import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
 # --- END CORRECTION ---
+from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
