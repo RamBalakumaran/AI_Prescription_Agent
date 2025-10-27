@@ -1,3 +1,5 @@
+# app/__init__.py
+
 from flask import Flask, render_template, request, session, redirect, url_for, flash, abort
 from .agent import get_ai_response
 import os
