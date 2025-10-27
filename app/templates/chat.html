@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="chat-body">
+
+    <!-- Mobile Menu Button -->
+    <button class="menu-toggle" id="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
     <div class="sidebar">
         <a href="{{ url_for('new_chat') }}" class="btn-new-chat">+ New Chat</a>
         <div class="chat-list">
@@ -44,15 +52,26 @@
         </form>
     </div>
 
+    <!-- JavaScript for Mobile Menu and Loader -->
     <script>
-        document.getElementById('agent-form').addEventListener('submit', function() {
-            document.getElementById('loader').classList.add('active');
-        });
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+            }
+            
+            const agentForm = document.getElementById('agent-form');
+            const loader = document.getElementById('loader');
+            if (agentForm && loader) {
+                agentForm.addEventListener('submit', () => loader.classList.add('active'));
+            }
+
             const historyContainer = document.getElementById('history-container');
-            historyContainer.scrollTop = historyContainer.scrollHeight;
-        }
+            if (historyContainer) {
+                historyContainer.scrollTop = historyContainer.scrollHeight;
+            }
+        });
     </script>
 </body>
 </html>
-
