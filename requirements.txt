@@ -1,27 +1,28 @@
 # Flask and Web Server
-Flask
-gunicorn
+Flask==2.3.3
+gunicorn==21.2.0
 
 # Database and Environment
-Flask-SQLAlchemy
-Flask-Login
-Flask-Bcrypt
-psycopg2-binary
-python-dotenv
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-Bcrypt==1.0.1
+psycopg2-binary==2.9.9
+python-dotenv==1.0.1
 
 # Core LangChain for RAG
-# This is the complete and correct list
-langchain
-langchain-community
-langchain-core
-langchain-text-splitters
+# Pinned to a stable version family to ensure consistent import paths
+langchain==0.1.17
+langchain-community==0.0.34
+langchain-core==0.1.45
+langchain-text-splitters==0.0.1
 
 # Hugging Face Transformers and PyTorch Backend
-torch
-transformers
-accelerate
-sentence-transformers
+# Pinned to stable, compatible versions
+torch==2.1.2
+transformers==4.38.2
+accelerate==0.27.2
+sentence-transformers==2.5.1
 
 # Data Handling and Vector Store
-pandas
-chromadb
+pandas==2.1.4
+chromadb==0.4.24
