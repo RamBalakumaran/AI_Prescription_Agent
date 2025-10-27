@@ -9,7 +9,6 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 # --- FINAL CORRECTED IMPORTS (for a full langchain installation) ---
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-# --- END CORRECTION ---
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
@@ -46,7 +45,6 @@ def get_medicine_info(query: str):
     return format_single_medicine_response(documents[0].page_content, query)
 
 def intelligent_symptom_analyser(query: str):
-    # This function is unchanged
     print("--- Running Intelligent Symptom Analyser (Context-Aware) ---")
     _load_static_data()
     medicines_df = _MEDICINES_DF_STATIC.copy()
@@ -83,14 +81,24 @@ def intelligent_symptom_analyser(query: str):
                 dosage = medicines_df[medicines_df['Medicine_Name'] == med_name]['Dosage_Instruction'].iloc[0]
                 suggested_medicines[med_name] = f"• For <strong>{keyword.capitalize()}</strong>, you could consider <strong>{med_name}</strong> ({dosage})."
     user_symptoms_str = ', '.join(all_detected_keywords)
-    response_parts = [f"Based on your symptoms (<strong>{user_symptoms_str}</strong>), here is a possible analysis:",f"<br><strong>🧠 Possible Causes:</strong> {', '.join(possible_conditions)}.", "<br><strong>💊 Common Relief Options ):</strong>"]
-    if not suggested_medicines: response_parts.append("• No specific medicine suggestions found for these exact symptoms.")
-    else: response_parts.extend(suggested_medicines.values())
-    response_parts.extend(["<br><strong>⚠️ When to see a doctor:</strong>", "• If symptoms persist for more than 3-4 days.","• If you develop a high fever or have difficulty breathing.","• If the pain is severe and does not improve."])
+    response_parts = [
+        f"Based on your symptoms (<strong>{user_symptoms_str}</strong>), here is a possible analysis:",
+        f"<br><strong>🧠 Possible Causes:</strong> {', '.join(possible_conditions)}.",
+        "<br><strong>💊 Common Relief Options:</strong>"
+    ]
+    if not suggested_medicines: 
+        response_parts.append("• No specific medicine suggestions found for these exact symptoms.")
+    else: 
+        response_parts.extend(suggested_medicines.values())
+    response_parts.extend([
+        "<br><strong>⚠️ When to see a doctor:</strong>",
+        "• If symptoms persist for more than 3-4 days.",
+        "• If you develop a high fever or have difficulty breathing.",
+        "• If the pain is severe and does not improve."
+    ])
     return "<br>".join(response_parts)
 
 def check_drug_interactions(query: str):
-    # This function is unchanged
     _load_static_data()
     mentioned_drugs = [name for name in _MEDICINES_DF_STATIC['Medicine_Name'].unique() if re.search(r'\b' + re.escape(name) + r'\b', query, re.IGNORECASE)]
     if len(mentioned_drugs) < 2: return "Please mention at least two drug names to check for interactions."
@@ -143,18 +151,17 @@ def create_rag_chain(search_k=1):
     return rag_chain
 
 def parse_context(context: str):
-    # This function is unchanged
     data = {}
     parts = [p.strip() for p in context.split('|||') if p.strip()]
     for part in parts:
         try:
             key, value = part.split(':', 1)
             data[key.strip()] = value.strip()
-        except ValueError: continue
+        except ValueError: 
+            continue
     return data
 
 def format_single_medicine_response(context: str, original_query: str):
-    # This function is unchanged
     data = parse_context(context)
     if 'Medicine_Name' not in data: return "Found incomplete information."
     db_medicine_name, strength = data.get('Medicine_Name'), data.get('Strength')
@@ -162,12 +169,18 @@ def format_single_medicine_response(context: str, original_query: str):
     user_term = next((s for s in synonyms if re.search(r'\b' + re.escape(s) + r'\b', original_query, re.IGNORECASE)), None)
     title = f"Here is the information for <strong>{db_medicine_name} {strength}</strong>"
     title += f" (also known as <strong>{user_term}</strong>):" if user_term and user_term.lower() != db_medicine_name.lower() else ":"
-    response_parts = [title,f"•  <strong>Use Case:</strong> {data.get('Use Case', 'N/A')}",f"•  <strong>Availability:</strong> {'In Stock' if data.get('Stock', 'No').lower() == 'yes' else 'Out of Stock'}",f"•  <strong>Alternative:</strong> {data.get('Alternative', 'N/A')}",f"•  <strong>Dosage:</strong> {data.get('Dosage', 'N/A')}", "<br><strong>Disclaimer:</strong> Always consult a doctor or pharmacist."]
+    response_parts = [
+        title,
+        f"•  <strong>Use Case:</strong> {data.get('Use Case', 'N/A')}",
+        f"•  <strong>Availability:</strong> {'In Stock' if data.get('Stock', 'No').lower() == 'yes' else 'Out of Stock'}",
+        f"•  <strong>Alternative:</strong> {data.get('Alternative', 'N/A')}",
+        f"•  <strong>Dosage:</strong> {data.get('Dosage', 'N/A')}",
+        "<br><strong>Disclaimer:</strong> Always consult a doctor or pharmacist."
+    ]
     return "<br>".join(response_parts)
 
 # --- 4. THE ROUTER ---
 def get_ai_response(query: str):
-    # This function is unchanged
     _load_static_data()
     print(f"Routing query: '{query}'")
     query_lower = query.lower()
@@ -183,4 +196,4 @@ def get_ai_response(query: str):
     print("--> Routing to: Medicine Information Finder")
     return get_medicine_info(query)
 
-print("Agent module loaded. Models and data will be loaded on first request.")```
+print("Agent module loaded. Models and data will be loaded on first request.")
